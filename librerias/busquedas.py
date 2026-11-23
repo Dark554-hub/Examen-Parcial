@@ -1,40 +1,50 @@
 """
-Librería de Algoritmos de Búsqueda:
+Librería de Algoritmos de Búsqueda utilizando obligatoriamente la librería propia `MyLinkedList.py`:
 - Requerimiento 3 y 5C del Examen Parcial:
-  1. Búsqueda Secuencial (Lineal) -> O(n), funciona en listas ordenadas y desordenadas.
-  2. Búsqueda Binaria (Iterativa y Recursiva) -> O(log n), requiere lista ordenada (soporta ascendente y descendente).
-  3. Búsqueda por Tabla Hash (Con encadenamiento separado para colisiones) -> O(1) promedio, ideal para búsquedas frecuentes.
+  1. Búsqueda Secuencial (Lineal) -> O(n), recorre los punteros `Node` (`cur = ll.head`) de `MyLinkedList`.
+  2. Búsqueda Binaria (Dicotómica) -> O(log n), sobre los elementos de `MyLinkedList` ordenada.
+  3. Búsqueda por Tabla Hash -> O(1) promedio, donde cada cubeta (bucket) y cada lista de índices de
+     colisión es una instancia de `MyLinkedList` (encadenamiento separado con `MyLinkedList`).
 """
 
 import time
+from MyLinkedList import MyLinkedList
 
 
 # =====================================================================
-# 1. BÚSQUEDA SECUENCIAL (LINEAR SEARCH)
+# 1. BÚSQUEDA SECUENCIAL SOBRE MYLINKEDLIST (LINEAR SEARCH)
 # =====================================================================
-def busqueda_secuencial(lista, objetivo):
+def busqueda_secuencial(lista_enlazada, objetivo):
     """
-    Recorre secuencialmente la lista desde el índice 0 hasta n-1 buscando todas las
-    apariciones del valor objetivo.
+    Recorre secuencialmente los nodos (`cur = ll.head`, `cur = cur.next`) de una `MyLinkedList`
+    desde el índice 0 hasta n-1 buscando todas las apariciones del valor objetivo.
     Complejidad: O(n). No requiere que los datos estén ordenados.
     """
     t0 = time.perf_counter()
-    posiciones = []
+    ll = lista_enlazada if isinstance(lista_enlazada, MyLinkedList) else MyLinkedList(lista_enlazada)
+    posiciones = MyLinkedList()
     comparaciones = 0
 
-    for i in range(len(lista)):
+    cur = ll.head
+    idx = 0
+    while cur is not None:
         comparaciones += 1
-        if lista[i] == objetivo:
-            posiciones.append(i)
+        if cur.data == objetivo:
+            posiciones.append(idx)
+        cur = cur.next
+        idx += 1
 
     t1 = time.perf_counter()
-    encontrado = len(posiciones) > 0
+    encontrado = not posiciones.is_empty()
+    lista_pos = posiciones.to_list()
     return {
-        "metodo": "Búsqueda Secuencial (Lineal)",
+        "metodo": "Búsqueda Secuencial (MyLinkedList)",
+        "estructura": "MyLinkedList",
         "objetivo": objetivo,
         "encontrado": encontrado,
-        "indice_primero": posiciones[0] if encontrado else -1,
-        "todas_posiciones": posiciones,
+        "indice_primero": posiciones.head.data if encontrado else -1,
+        "todas_posiciones": lista_pos,
+        "posiciones_linked_list": posiciones,
         "total_apariciones": len(posiciones),
         "comparaciones": comparaciones,
         "tiempo_seg": t1 - t0,
@@ -44,25 +54,28 @@ def busqueda_secuencial(lista, objetivo):
 
 
 # =====================================================================
-# 2. BÚSQUEDA BINARIA (BINARY SEARCH - ASCENDENTE Y DESCENDENTE)
+# 2. BÚSQUEDA BINARIA CON MYLINKEDLIST (ASCENDENTE Y DESCENDENTE)
 # =====================================================================
 def busqueda_binaria(lista_ordenada, objetivo, ascendente=True):
     """
-    Realiza una búsqueda dicotómica (binaria) dividiendo el intervalo a la mitad en cada paso.
-    Detecta además todas las ocurrencias contiguas del valor si existen duplicados.
-    Complejidad: O(log n). Requiere que la lista esté previamente ordenada.
+    Realiza una búsqueda dicotómica (binaria) sobre una `MyLinkedList` ordenada.
+    Guarda las posiciones encontradas y la traza de pasos en instancias de `MyLinkedList`.
+    Complejidad: O(log n). Requiere que la `MyLinkedList` esté previamente ordenada.
     """
     t0 = time.perf_counter()
-    n = len(lista_ordenada)
+    ll = lista_ordenada if isinstance(lista_ordenada, MyLinkedList) else MyLinkedList(lista_ordenada)
+    # Vector de acceso indexado extraído de MyLinkedList para saltos dicotómicos O(log n)
+    vista = ll.to_list()
+    n = len(vista)
     izq = 0
     der = n - 1
     comparaciones = 0
     indice_encontrado = -1
-    traza_pasos = []
+    traza_pasos = MyLinkedList()
 
     while izq <= der:
         medio = (izq + der) // 2
-        val_medio = lista_ordenada[medio]
+        val_medio = vista[medio]
         comparaciones += 1
         traza_pasos.append({"izq": izq, "der": der, "medio": medio, "valor_medio": val_medio})
 
@@ -81,30 +94,33 @@ def busqueda_binaria(lista_ordenada, objetivo, ascendente=True):
             else:
                 der = medio - 1
 
-    posiciones = []
+    posiciones = MyLinkedList()
     if indice_encontrado != -1:
-        # Expandir hacia la izquierda y derecha para capturar duplicados contiguos
         k = indice_encontrado
-        while k >= 0 and lista_ordenada[k] == objetivo:
+        while k >= 0 and vista[k] == objetivo:
             k -= 1
         inicio = k + 1
         k = indice_encontrado
-        while k < n and lista_ordenada[k] == objetivo:
+        while k < n and vista[k] == objetivo:
             k += 1
         fin = k - 1
-        posiciones = list(range(inicio, fin + 1))
+        for pos in range(inicio, fin + 1):
+            posiciones.append(pos)
 
     t1 = time.perf_counter()
     encontrado = indice_encontrado != -1
+    lista_pos = posiciones.to_list()
     return {
-        "metodo": "Búsqueda Binaria (Dicotómica)",
+        "metodo": "Búsqueda Binaria (MyLinkedList)",
+        "estructura": "MyLinkedList",
         "objetivo": objetivo,
         "encontrado": encontrado,
-        "indice_primero": posiciones[0] if encontrado else -1,
-        "todas_posiciones": posiciones,
+        "indice_primero": posiciones.head.data if encontrado else -1,
+        "todas_posiciones": lista_pos,
+        "posiciones_linked_list": posiciones,
         "total_apariciones": len(posiciones),
         "comparaciones": comparaciones,
-        "traza_pasos": traza_pasos,
+        "traza_pasos": traza_pasos.to_list(),
         "tiempo_seg": t1 - t0,
         "tiempo_ms": (t1 - t0) * 1000.0,
         "complejidad": "O(log n)",
@@ -112,19 +128,19 @@ def busqueda_binaria(lista_ordenada, objetivo, ascendente=True):
 
 
 # =====================================================================
-# 3. BÚSQUEDA POR TABLA HASH (HASH TABLE SEARCH - ENCADENAMIENTO)
+# 3. BÚSQUEDA POR TABLA HASH CON ENCADENAMIENTO EN MYLINKEDLIST
 # =====================================================================
 class TablaHashTransacciones:
     """
-    Estructura de Tabla Hash personalizada con función hash modular y resolución de
-    colisiones por encadenamiento separado (Separate Chaining).
-    Permite indexar miles de registros financieros y realizar búsquedas en O(1) promedio.
+    Estructura de Tabla Hash personalizada donde cada cubeta (bucket) es una instancia
+    de tu librería propia `MyLinkedList` (Encadenamiento Separado con `MyLinkedList`).
+    Cada nodo de la cubeta almacena `(clave, MyLinkedList_de_indices)`.
     """
 
     def __init__(self, capacidad=2003):
-        # Usamos un número primo para minimizar colisiones en distribución modular
         self.capacidad = capacidad
-        self.cubetas = [[] for _ in range(capacidad)]
+        # Cada cubeta es una MyLinkedList propia para resolver colisiones por encadenamiento
+        self.cubetas = [MyLinkedList() for _ in range(capacidad)]
         self.total_elementos = 0
         self.colisiones = 0
         self.tiempo_construccion_ms = 0.0
@@ -133,57 +149,73 @@ class TablaHashTransacciones:
         """Calcula el índice de cubeta para cualquier número entero (positivo o negativo)."""
         return (clave if clave >= 0 else -clave * 31) % self.capacidad
 
-    def construir_desde_lista(self, lista):
-        """Indexa todos los elementos de una lista guardando sus posiciones originales."""
+    def construir_desde_lista(self, lista_enlazada):
+        """Recorre los nodos de `MyLinkedList` e indexa cada valor en su cubeta `MyLinkedList`."""
         t0 = time.perf_counter()
-        self.cubetas = [[] for _ in range(self.capacidad)]
+        ll = lista_enlazada if isinstance(lista_enlazada, MyLinkedList) else MyLinkedList(lista_enlazada)
+        self.cubetas = [MyLinkedList() for _ in range(self.capacidad)]
         self.total_elementos = 0
         self.colisiones = 0
 
-        for idx, valor in enumerate(lista):
+        cur = ll.head
+        idx = 0
+        while cur is not None:
+            valor = cur.data
             h = self.funcion_hash(valor)
-            cubeta = self.cubetas[h]
-            if len(cubeta) > 0:
-                # Verificar si la clave ya existe en la cubeta
+            cubeta_ll = self.cubetas[h]
+
+            if not cubeta_ll.is_empty():
                 encontrado_en_cubeta = False
-                for entrada in cubeta:
-                    if entrada[0] == valor:
-                        entrada[1].append(idx)
+                nodo_c = cubeta_ll.head
+                while nodo_c is not None:
+                    clave_actual, indices_ll = nodo_c.data
+                    if clave_actual == valor:
+                        indices_ll.append(idx)
                         encontrado_en_cubeta = True
                         break
+                    nodo_c = nodo_c.next
                 if not encontrado_en_cubeta:
                     self.colisiones += 1
-                    cubeta.append((valor, [idx]))
+                    cubeta_ll.append((valor, MyLinkedList([idx])))
             else:
-                cubeta.append((valor, [idx]))
+                cubeta_ll.append((valor, MyLinkedList([idx])))
+
             self.total_elementos += 1
+            cur = cur.next
+            idx += 1
 
         t1 = time.perf_counter()
         self.tiempo_construccion_ms = (t1 - t0) * 1000.0
         return self
 
     def buscar(self, objetivo):
-        """Busca un valor en la tabla hash en tiempo O(1) promedio."""
+        """Busca un valor recorriendo la `MyLinkedList` de la cubeta hash correspondiente en O(1) promedio."""
         t0 = time.perf_counter()
         h = self.funcion_hash(objetivo)
-        cubeta = self.cubetas[h]
+        cubeta_ll = self.cubetas[h]
         comparaciones = 0
-        posiciones = []
+        posiciones = MyLinkedList()
 
-        for clave, indices in cubeta:
+        nodo_c = cubeta_ll.head
+        while nodo_c is not None:
             comparaciones += 1
+            clave, indices_ll = nodo_c.data
             if clave == objetivo:
-                posiciones = indices[:]
+                posiciones = indices_ll.copy()
                 break
+            nodo_c = nodo_c.next
 
         t1 = time.perf_counter()
-        encontrado = len(posiciones) > 0
+        encontrado = not posiciones.is_empty()
+        lista_pos = posiciones.to_list()
         return {
-            "metodo": "Búsqueda por Tabla Hash (O(1))",
+            "metodo": "Búsqueda por Tabla Hash (MyLinkedList Chaining)",
+            "estructura": "MyLinkedList",
             "objetivo": objetivo,
             "encontrado": encontrado,
-            "indice_primero": posiciones[0] if encontrado else -1,
-            "todas_posiciones": posiciones,
+            "indice_primero": posiciones.head.data if encontrado else -1,
+            "todas_posiciones": lista_pos,
+            "posiciones_linked_list": posiciones,
             "total_apariciones": len(posiciones),
             "comparaciones": comparaciones if comparaciones > 0 else 1,
             "cubeta_hash": h,
@@ -196,10 +228,9 @@ class TablaHashTransacciones:
         }
 
 
-def busqueda_hash(lista, objetivo, tabla_preconstruida=None):
-    """Función envoltorio para realizar búsqueda por Hash sobre una lista de registros."""
+def busqueda_hash(lista_enlazada, objetivo, tabla_preconstruida=None):
+    """Función envoltorio para realizar búsqueda por Hash sobre una `MyLinkedList`."""
     if tabla_preconstruida is None:
-        # Escalar tamaño primo según volumen de datos
-        cap = 2003 if len(lista) <= 2000 else 10007
-        tabla_preconstruida = TablaHashTransacciones(capacidad=cap).construir_desde_lista(lista)
+        cap = 2003 if len(lista_enlazada) <= 2000 else 10007
+        tabla_preconstruida = TablaHashTransacciones(capacidad=cap).construir_desde_lista(lista_enlazada)
     return tabla_preconstruida.buscar(objetivo)

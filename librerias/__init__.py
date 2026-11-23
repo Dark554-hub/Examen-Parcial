@@ -2,9 +2,14 @@
 Paquete de Librerías Propias - Sistema de Procesamiento y Ordenamiento Masivo de Datos.
 Examen Parcial - Estructura de Datos.
 Autor: Emiliano Cab Martínez
+
+Integración obligatoria de la librería propia `MyLinkedList.py` (`Node` y `MyLinkedList`)
+desarrollada en `c:\\Users\\Emili\\OneDrive\\Desktop\\estructura\\MyLinkedList.py`.
 """
 
+from MyLinkedList import Node, MyLinkedList
 from librerias.ordenamientos_internos import (
+    asegurar_linked_list,
     ordenamiento_burbuja,
     ordenamiento_insercion,
     ordenamiento_seleccion,
@@ -42,6 +47,9 @@ from librerias.comparador import (
 )
 
 __all__ = [
+    "Node",
+    "MyLinkedList",
+    "asegurar_linked_list",
     "ordenamiento_burbuja",
     "ordenamiento_insercion",
     "ordenamiento_seleccion",

@@ -1,135 +1,141 @@
 """
 Librería de Diagnóstico y Corrección de Código Defectuoso (Requerimiento 4 del Examen Parcial).
-Incluye los 5 casos de errores lógicos solicitados en el examen:
-1. Errores de Índices (IndexError / Off-by-one en recorrido de ordenamiento)
-2. Errores de Recursividad (Falta de caso base / partición infinita en Quicksort)
-3. Errores de Intercambio Incorrecto (Sobrescritura sin variable temporal / pérdida de datos)
-4. Errores de Manejo de Archivos (Falta de cierre, conversión de tipos y líneas vacías)
-5. Errores de Búsquedas Incorrectas (Actualización errónea de límites en Búsqueda Binaria)
+Integrada con la librería propia `MyLinkedList.py` (`estructura/MyLinkedList.py`).
 
-Cada caso expone:
-- El fragmento de código defectuoso original
-- La identificación exacta de la falla técnica
-- El código corregido funcional
-- La explicación técnica breve y una prueba comparativa en vivo.
+Incluye los 5 casos de errores lógicos solicitados en el examen operando con `MyLinkedList`:
+1. Errores de Índices (IndexError / Off-by-one en recorrido de ordenamiento sobre MyLinkedList)
+2. Errores de Recursividad (Falta de caso base / partición infinita en Quicksort con MyLinkedList)
+3. Errores de Intercambio Incorrecto (Sobrescritura sin variable temporal en nodos de MyLinkedList)
+4. Errores de Manejo de Archivos (Falta de cierre, conversión de tipos y carga en MyLinkedList)
+5. Errores de Búsquedas Incorrectas (Actualización errónea de límites en Búsqueda Binaria)
 """
 
 import os
 import tempfile
+from MyLinkedList import MyLinkedList
 
 
 # =====================================================================
-# CASO 1: ERROR DE ÍNDICES (OFF-BY-ONE & DESBORDAMIENTO EN BURBUJA)
+# CASO 1: ERROR DE ÍNDICES (OFF-BY-ONE & DESBORDAMIENTO EN MYLINKEDLIST)
 # =====================================================================
-CODIGO_DEFECTUOSO_1 = """def burbuja_defectuoso(lista):
-    n = len(lista)
+CODIGO_DEFECTUOSO_1 = """def burbuja_defectuoso(lista_ll):
+    n = len(lista_ll)
     # ERROR 1: range(n) llega hasta i = n-1
-    # ERROR 2: range(1, n) hace que lista[j + 1] desborde en j = n - 1 (IndexError)
-    # además de omitir el índice 0 (el primer elemento nunca se ordena).
+    # ERROR 2: range(1, n) hace que lista_ll[j + 1] desborde en j = n - 1 (IndexError)
+    # en MyLinkedList._normalize(), además de omitir el índice 0.
     for i in range(n):
         for j in range(1, n):
-            if lista[j] > lista[j + 1]:
-                lista[j], lista[j + 1] = lista[j + 1], lista[j]
-    return lista"""
+            if lista_ll[j] > lista_ll[j + 1]:
+                lista_ll[j], lista_ll[j + 1] = lista_ll[j + 1], lista_ll[j]
+    return lista_ll"""
 
-CODIGO_CORREGIDO_1 = """def burbuja_corregido(lista):
-    datos = lista[:]
-    n = len(datos)
-    # CORRECCIÓN: iniciar en j = 0 y limitar hasta n - 1 - i
-    # Así j + 1 nunca excede n - 1 y se incluye el índice 0.
+CODIGO_CORREGIDO_1 = """def burbuja_corregido(lista_ll):
+    datos_ll = MyLinkedList(lista_ll)
+    n = len(datos_ll)
+    # CORRECCIÓN: recorrer desde el nodo head hasta n - 1 - i sin desbordar punteros
     for i in range(n - 1):
-        for j in range(0, n - 1 - i):
-            if datos[j] > datos[j + 1]:
-                datos[j], datos[j + 1] = datos[j + 1], datos[j]
-    return datos"""
+        cur = datos_ll.head
+        for _ in range(0, n - 1 - i):
+            if cur.data > cur.next.data:
+                cur.data, cur.next.data = cur.next.data, cur.data
+            cur = cur.next
+    return datos_ll"""
 
 
 def probar_caso_1_indices(muestra=None):
     if muestra is None:
-        muestra = [45, 12, 89, 7, 33]
+        muestra = MyLinkedList([45, 12, 89, 7, 33])
+    else:
+        muestra = MyLinkedList(muestra)
 
-    # Simular fallo del código defectuoso capturando la excepción real
     error_capturado = None
     try:
-        datos_err = muestra[:]
+        datos_err = MyLinkedList(muestra)
         n = len(datos_err)
         for _ in range(n):
             for j in range(1, n):
                 if datos_err[j] > datos_err[j + 1]:
                     datos_err[j], datos_err[j + 1] = datos_err[j + 1], datos_err[j]
     except Exception as exc:
-        error_capturado = f"{type(exc).__name__}: {exc} (al evaluar lista[j + 1] cuando j = {len(muestra)-1})"
+        error_capturado = f"{type(exc).__name__}: {exc} (en MyLinkedList[j + 1] cuando j = {len(muestra)-1})"
 
-    # Ejecutar versión corregida
-    datos_ok = muestra[:]
+    datos_ok = MyLinkedList(muestra)
     n = len(datos_ok)
     for i in range(n - 1):
-        for j in range(0, n - 1 - i):
-            if datos_ok[j] > datos_ok[j + 1]:
-                datos_ok[j], datos_ok[j + 1] = datos_ok[j + 1], datos_ok[j]
+        cur = datos_ok.head
+        for _ in range(0, n - 1 - i):
+            if cur.data > cur.next.data:
+                cur.data, cur.next.data = cur.next.data, cur.data
+            cur = cur.next
 
     return {
         "id": 1,
-        "categoria": "Errores de Índices (Off-by-One / Desbordamiento)",
+        "categoria": "Errores de Índices en MyLinkedList (Off-by-One / Desbordamiento)",
         "codigo_defectuoso": CODIGO_DEFECTUOSO_1,
         "codigo_corregido": CODIGO_CORREGIDO_1,
         "identificacion_error": (
-            "El ciclo interno usa `range(1, n)` y evalúa `lista[j + 1]`. "
-            "Esto provoca dos errores críticos: 1) ignora el elemento en la posición `0`, y "
-            "2) cuando `j = n - 1`, intenta acceder a `lista[n]`, lanzando `IndexError: list index out of range`."
+            "El ciclo interno usa `range(1, n)` y evalúa `lista_ll[j + 1]`. "
+            "Esto provoca dos errores críticos en `MyLinkedList`: 1) ignora el nodo `head` en la posición `0`, y "
+            "2) cuando `j = n - 1`, intenta acceder a `lista_ll[n]`, disparando `IndexError: índice fuera de rango` "
+            "en `MyLinkedList._normalize()`."
         ),
         "explicacion_solucion": (
-            "Se corrigió el rango del ciclo interno a `range(0, n - 1 - i)`. "
-            "De esta forma se evalúa desde el primer índice (`0`) y el límite superior `n - 1 - i` garantiza "
-            "que `j + 1` llegue como máximo a `n - 1`, evitando el desbordamiento y optimizando las pasadas."
+            "Se corrigió el recorrido iniciando en `cur = datos_ll.head` (índice `0`) con límite `range(0, n - 1 - i)`, "
+            "garantizando que `cur.next` siempre exista y evitando el desbordamiento de índice."
         ),
-        "entrada_prueba": muestra,
+        "entrada_prueba": repr(muestra),
         "resultado_defectuoso": error_capturado,
-        "resultado_corregido": datos_ok,
+        "resultado_corregido": datos_ok.to_list(),
+        "resultado_linked_list": repr(datos_ok),
     }
 
 
 # =====================================================================
-# CASO 2: ERROR DE RECURSIVIDAD (RECURSIÓN INFINITA EN QUICKSORT)
+# CASO 2: ERROR DE RECURSIVIDAD (RECURSIÓN INFINITA EN QUICKSORT CON MYLINKEDLIST)
 # =====================================================================
-CODIGO_DEFECTUOSO_2 = """def quicksort_defectuoso(lista):
+CODIGO_DEFECTUOSO_2 = """def quicksort_defectuoso(lista_ll):
     # ERROR 1: Condición base insuficiente (solo verifica lista vacía, no longitud 1)
-    if len(lista) == 0:
-        return lista
-    pivote = lista[0]
-    # ERROR 2: Incluye el propio pivote en 'menores_iguales' con '<=' sin separarlo
+    if len(lista_ll) == 0:
+        return lista_ll
+    pivote = lista_ll.head.data
+    # ERROR 2: Incluye el propio pivote en 'menores' con '<=' sin separarlo
     # Cuando todos los elementos son iguales o de longitud 1, 'menores' tiene el mismo
-    # tamaño que 'lista', causando RecursionError (recursión infinita).
-    menores = [x for x in lista if x <= pivote]
-    mayores = [x for x in lista if x > pivote]
+    # tamaño que 'lista_ll', causando RecursionError (recursión infinita).
+    menores = MyLinkedList([x for x in lista_ll if x <= pivote])
+    mayores = MyLinkedList([x for x in lista_ll if x > pivote])
     return quicksort_defectuoso(menores) + quicksort_defectuoso(mayores)"""
 
-CODIGO_CORREGIDO_2 = """def quicksort_corregido(lista):
-    # CORRECCIÓN 1: Caso base detiene la recursión cuando len(lista) <= 1
-    if len(lista) <= 1:
-        return lista
-    pivote = lista[len(lista) // 2]
-    # CORRECCIÓN 2: Partición tripartita (<, ==, >) garantiza que las llamadas
-    # recursivas siempre reciban sublistas estrictamente más pequeñas.
-    menores = [x for x in lista if x < pivote]
-    iguales = [x for x in lista if x == pivote]
-    mayores = [x for x in lista if x > pivote]
+CODIGO_CORREGIDO_2 = """def quicksort_corregido(lista_ll):
+    # CORRECCIÓN 1: Caso base detiene la recursión cuando len(lista_ll) <= 1
+    if len(lista_ll) <= 1:
+        return lista_ll
+    pivote = lista_ll.head.data
+    # CORRECCIÓN 2: Partición en 3 MyLinkedList (<, ==, >) garantiza que las llamadas
+    # recursivas siempre reciban sublistas enlazadas estrictamente más pequeñas.
+    menores = MyLinkedList()
+    iguales = MyLinkedList()
+    mayores = MyLinkedList()
+    for x in lista_ll:
+        if x < pivote: menores.append(x)
+        elif x > pivote: mayores.append(x)
+        else: iguales.append(x)
     return quicksort_corregido(menores) + iguales + quicksort_corregido(mayores)"""
 
 
 def probar_caso_2_recursividad(muestra=None):
     if muestra is None:
-        muestra = [50, 20, 50, 10, 30]
+        muestra = MyLinkedList([50, 20, 50, 10, 30])
+    else:
+        muestra = MyLinkedList(muestra)
 
-    # Simular con contador de profundidad para no colgar el intérprete y evidenciar el RecursionError
-    def _qs_defectuoso_seguro(lst, prof=0):
+    def _qs_defectuoso_seguro(ll, prof=0):
         if prof > 40:
-            raise RecursionError("maximum recursion depth exceeded (partición no reduce el tamaño de la lista)")
-        if len(lst) == 0:
-            return lst
-        pivote = lst[0]
-        menores = [x for x in lst if x <= pivote]
-        mayores = [x for x in lst if x > pivote]
+            raise RecursionError("maximum recursion depth exceeded (MyLinkedList no reduce su tamaño en la partición)")
+        if len(ll) == 0:
+            return ll
+        pivote = ll.head.data
+        menores = MyLinkedList([x for x in ll if x <= pivote])
+        mayores = MyLinkedList([x for x in ll if x > pivote])
         return _qs_defectuoso_seguro(menores, prof + 1) + _qs_defectuoso_seguro(mayores, prof + 1)
 
     error_capturado = None
@@ -138,141 +144,161 @@ def probar_caso_2_recursividad(muestra=None):
     except Exception as exc:
         error_capturado = f"{type(exc).__name__}: {exc}"
 
-    def _qs_corregido(lst):
-        if len(lst) <= 1:
-            return lst
-        pivote = lst[len(lst) // 2]
-        menores = [x for x in lst if x < pivote]
-        iguales = [x for x in lst if x == pivote]
-        mayores = [x for x in lst if x > pivote]
+    def _qs_corregido(ll):
+        if len(ll) <= 1:
+            return ll
+        pivote = ll.head.data
+        menores = MyLinkedList()
+        iguales = MyLinkedList()
+        mayores = MyLinkedList()
+        for x in ll:
+            if x < pivote:
+                menores.append(x)
+            elif x > pivote:
+                mayores.append(x)
+            else:
+                iguales.append(x)
         return _qs_corregido(menores) + iguales + _qs_corregido(mayores)
 
+    res_ok = _qs_corregido(muestra)
     return {
         "id": 2,
-        "categoria": "Errores de Recursividad (Caso Base y Progreso Recursivo)",
+        "categoria": "Errores de Recursividad en MyLinkedList (Caso Base y Progreso Recursivo)",
         "codigo_defectuoso": CODIGO_DEFECTUOSO_2,
         "codigo_corregido": CODIGO_CORREGIDO_2,
         "identificacion_error": (
-            "El caso base `len(lista) == 0` no detiene listas de 1 elemento, y la comprensión "
-            "`[x for x in lista if x <= pivote]` vuelve a incluir al propio pivote en la sublista izquierda. "
-            "Cuando el pivote es el mayor elemento o la lista tiene 1 elemento, la sublista no se reduce y "
-            "produce `RecursionError` (desbordamiento de pila)."
+            "El caso base `len(lista_ll) == 0` no detiene listas enlazadas de 1 nodo, y la partición "
+            "`x <= pivote` vuelve a insertar al propio `pivote` en la `MyLinkedList` izquierda. "
+            "Cuando el pivote es el mayor elemento o hay 1 solo nodo, la `MyLinkedList` no se reduce y "
+            "produce `RecursionError`."
         ),
         "explicacion_solucion": (
-            "Se estableció el caso base en `if len(lista) <= 1: return lista` y se separó la partición en "
-            "tres listas (`menores < pivote`, `iguales == pivote`, `mayores > pivote`). Al excluir `iguales` "
-            "de las llamadas recursivas, cada nivel reduce estrictamente el tamaño del problema."
+            "Se estableció el caso base en `if len(lista_ll) <= 1: return lista_ll` y se separó la partición en "
+            "tres instancias de `MyLinkedList` (`menores`, `iguales`, `mayores`). Al excluir `iguales` "
+            "de las llamadas recursivas, cada nivel reduce estrictamente el número de nodos."
         ),
-        "entrada_prueba": muestra,
+        "entrada_prueba": repr(muestra),
         "resultado_defectuoso": error_capturado,
-        "resultado_corregido": _qs_corregido(muestra),
+        "resultado_corregido": res_ok.to_list(),
+        "resultado_linked_list": repr(res_ok),
     }
 
 
 # =====================================================================
-# CASO 3: ERROR DE INTERCAMBIO INCORRECTO (PÉRDIDA DE VALOR EN SELECCIÓN)
+# CASO 3: ERROR DE INTERCAMBIO INCORRECTO EN NODOS DE MYLINKEDLIST
 # =====================================================================
-CODIGO_DEFECTUOSO_3 = """def seleccion_defectuoso(lista):
-    datos = lista[:]
-    n = len(datos)
-    for i in range(n - 1):
-        idx_min = i
-        for j in range(i + 1, n):
-            if datos[j] < datos[idx_min]:
-                idx_min = j
-        # ERROR: Intercambio destructivo sin variable auxiliar ni desempaquetado
-        # Al asignar datos[i] = datos[idx_min], el valor original de datos[i] se pierde
-        # y luego datos[idx_min] recibe el mismo valor duplicado.
-        datos[i] = datos[idx_min]
-        datos[idx_min] = datos[i]
-    return datos"""
+CODIGO_DEFECTUOSO_3 = """def seleccion_defectuoso(lista_ll):
+    datos_ll = MyLinkedList(lista_ll)
+    nodo_i = datos_ll.head
+    while nodo_i is not None:
+        nodo_min = nodo_i
+        nodo_j = nodo_i.next
+        while nodo_j is not None:
+            if nodo_j.data < nodo_min.data:
+                nodo_min = nodo_j
+            nodo_j = nodo_j.next
+        # ERROR: Intercambio destructivo en Node.data sin variable auxiliar
+        # Al asignar nodo_i.data = nodo_min.data, el dato original de nodo_i se pierde.
+        nodo_i.data = nodo_min.data
+        nodo_min.data = nodo_i.data
+        nodo_i = nodo_i.next
+    return datos_ll"""
 
-CODIGO_CORREGIDO_3 = """def seleccion_corregido(lista):
-    datos = lista[:]
-    n = len(datos)
-    for i in range(n - 1):
-        idx_min = i
-        for j in range(i + 1, n):
-            if datos[j] < datos[idx_min]:
-                idx_min = j
-        # CORRECCIÓN: Usar variable temporal (o asignación simultánea de tuplas)
-        if idx_min != i:
-            temp = datos[i]
-            datos[i] = datos[idx_min]
-            datos[idx_min] = temp
-    return datos"""
+CODIGO_CORREGIDO_3 = """def seleccion_corregido(lista_ll):
+    datos_ll = MyLinkedList(lista_ll)
+    nodo_i = datos_ll.head
+    while nodo_i is not None:
+        nodo_min = nodo_i
+        nodo_j = nodo_i.next
+        while nodo_j is not None:
+            if nodo_j.data < nodo_min.data:
+                nodo_min = nodo_j
+            nodo_j = nodo_j.next
+        # CORRECCIÓN: Usar variable temporal 'temp' para intercambiar Node.data
+        if nodo_min is not nodo_i:
+            temp = nodo_i.data
+            nodo_i.data = nodo_min.data
+            nodo_min.data = temp
+        nodo_i = nodo_i.next
+    return datos_ll"""
 
 
 def probar_caso_3_intercambio(muestra=None):
     if muestra is None:
-        muestra = [90, 25, 60, 10, 40]
+        muestra = MyLinkedList([90, 25, 60, 10, 40])
+    else:
+        muestra = MyLinkedList(muestra)
 
-    # Ejecutar versión defectuosa (corrompe y duplica los valores menores)
-    datos_err = muestra[:]
-    n = len(datos_err)
-    for i in range(n - 1):
-        idx_min = i
-        for j in range(i + 1, n):
-            if datos_err[j] < datos_err[idx_min]:
-                idx_min = j
-        datos_err[i] = datos_err[idx_min]
-        datos_err[idx_min] = datos_err[i]
+    datos_err = MyLinkedList(muestra)
+    nodo_i = datos_err.head
+    while nodo_i is not None:
+        nodo_min = nodo_i
+        nodo_j = nodo_i.next
+        while nodo_j is not None:
+            if nodo_j.data < nodo_min.data:
+                nodo_min = nodo_j
+            nodo_j = nodo_j.next
+        nodo_i.data = nodo_min.data
+        nodo_min.data = nodo_i.data
+        nodo_i = nodo_i.next
 
-    # Ejecutar versión corregida
-    datos_ok = muestra[:]
-    for i in range(n - 1):
-        idx_min = i
-        for j in range(i + 1, n):
-            if datos_ok[j] < datos_ok[idx_min]:
-                idx_min = j
-        if idx_min != i:
-            temp = datos_ok[i]
-            datos_ok[i] = datos_ok[idx_min]
-            datos_ok[idx_min] = temp
+    datos_ok = MyLinkedList(muestra)
+    nodo_i = datos_ok.head
+    while nodo_i is not None:
+        nodo_min = nodo_i
+        nodo_j = nodo_i.next
+        while nodo_j is not None:
+            if nodo_j.data < nodo_min.data:
+                nodo_min = nodo_j
+            nodo_j = nodo_j.next
+        if nodo_min is not nodo_i:
+            temp = nodo_i.data
+            nodo_i.data = nodo_min.data
+            nodo_min.data = temp
+        nodo_i = nodo_i.next
 
     return {
         "id": 3,
-        "categoria": "Errores de Intercambio Incorrecto (Sobrescritura de Memoria)",
+        "categoria": "Errores de Intercambio Incorrecto en Nodos de MyLinkedList",
         "codigo_defectuoso": CODIGO_DEFECTUOSO_3,
         "codigo_corregido": CODIGO_CORREGIDO_3,
         "identificacion_error": (
-            "Al hacer `datos[i] = datos[idx_min]` seguido de `datos[idx_min] = datos[i]`, la primera instrucción "
-            "sobrescribe el valor original de `datos[i]` antes de respaldarlo. Como resultado, el valor original "
-            "desaparece del arreglo y el valor mínimo se clona en ambas posiciones."
+            "Al hacer `nodo_i.data = nodo_min.data` seguido de `nodo_min.data = nodo_i.data`, la primera instrucción "
+            "sobrescribe el atributo `data` del nodo `nodo_i` en `MyLinkedList` antes de respaldarlo. Como resultado, "
+            "el valor original se pierde y el mínimo se duplica en todos los nodos."
         ),
         "explicacion_solucion": (
-            "Se respaldó el valor `temp = datos[i]` antes de sobrescribir `datos[i]`, o bien se emplea "
-            "desempaquetado de tuplas `datos[i], datos[idx_min] = datos[idx_min], datos[i]`, preservando la "
-            "integridad de todos los registros financieros."
+            "Se respaldó `temp = nodo_i.data` antes de sobrescribir `nodo_i.data` (o mediante asignación simultánea "
+            "`nodo_i.data, nodo_min.data = nodo_min.data, nodo_i.data`), preservando la integridad de `MyLinkedList`."
         ),
-        "entrada_prueba": muestra,
-        "resultado_defectuoso": f"Datos corruptos (duplicados y pérdida de valores): {datos_err}",
-        "resultado_corregido": datos_ok,
+        "entrada_prueba": repr(muestra),
+        "resultado_defectuoso": f"Datos corruptos en MyLinkedList: {datos_err.to_list()}",
+        "resultado_corregido": datos_ok.to_list(),
+        "resultado_linked_list": repr(datos_ok),
     }
 
 
 # =====================================================================
-# CASO 4: ERROR DE MANEJO DE ARCHIVOS (TIPOS STRING Y FALTA DE CIERRE/STRIP)
+# CASO 4: ERROR DE MANEJO DE ARCHIVOS AL CARGAR EN MYLINKEDLIST
 # =====================================================================
 CODIGO_DEFECTUOSO_4 = """def leer_transacciones_defectuoso(ruta):
-    # ERROR 1: No usa gestor de contexto 'with', dejando el descriptor de archivo abierto
+    # ERROR 1: No usa gestor de contexto 'with', dejando el archivo abierto
     archivo = open(ruta, "r")
-    # ERROR 2: Lee las líneas como cadenas (str) con '\\n' sin convertir a int()
-    # Al ordenar cadenas, "1000" queda antes que "25" (orden lexicográfico ASCII, no numérico)
-    # y tampoco filtra líneas vacías.
-    datos = archivo.readlines()
-    return datos"""
+    # ERROR 2: Inserta las líneas crudas (str) en MyLinkedList sin convertir a int()
+    # Al ordenar cadenas, "1000" queda antes que "25" (orden lexicográfico ASCII)
+    datos_ll = MyLinkedList(archivo.readlines())
+    return datos_ll"""
 
 CODIGO_CORREGIDO_4 = """def leer_transacciones_corregido(ruta):
-    datos = []
+    datos_ll = MyLinkedList()
     # CORRECCIÓN 1: Bloque 'with' garantiza el cierre automático del archivo
     with open(ruta, "r", encoding="utf-8") as archivo:
         for linea in archivo:
             limpia = linea.strip()
-            # CORRECCIÓN 2: Ignorar líneas vacías y convertir explícitamente a int
+            # CORRECCIÓN 2: Ignorar líneas vacías e insertar int en MyLinkedList
             if limpia:
-                datos.append(int(limpia))
-    return datos"""
+                datos_ll.append(int(limpia))
+    return datos_ll"""
 
 
 def probar_caso_4_archivos():
@@ -282,81 +308,86 @@ def probar_caso_4_archivos():
         ruta_tmp = tmp.name
 
     try:
-        # Defectuoso: lee strings y al compararlos lexicográficamente produce orden erróneo
         f = open(ruta_tmp, "r", encoding="utf-8")
-        crudos = [x.strip() for x in f.readlines() if x.strip()]
+        lex_ll = MyLinkedList([x.strip() for x in f.readlines() if x.strip()])
         f.close()
-        # Ordenamiento burbuja sobre strings (simula el efecto de no convertir a int)
-        lex = crudos[:]
-        for i in range(len(lex) - 1):
-            for j in range(len(lex) - 1 - i):
-                if lex[j] > lex[j + 1]:
-                    lex[j], lex[j + 1] = lex[j + 1], lex[j]
+        # Ordenar MyLinkedList de strings con burbuja de punteros
+        n = len(lex_ll)
+        for i in range(n - 1):
+            cur = lex_ll.head
+            for _ in range(n - 1 - i):
+                if cur.data > cur.next.data:
+                    cur.data, cur.next.data = cur.next.data, cur.data
+                cur = cur.next
 
-        # Corregido: convierte a int y cierra con with
-        datos_ok = []
+        datos_ok = MyLinkedList()
         with open(ruta_tmp, "r", encoding="utf-8") as arch:
             for linea in arch:
                 limpia = linea.strip()
                 if limpia:
                     datos_ok.append(int(limpia))
-        for i in range(len(datos_ok) - 1):
-            for j in range(len(datos_ok) - 1 - i):
-                if datos_ok[j] > datos_ok[j + 1]:
-                    datos_ok[j], datos_ok[j + 1] = datos_ok[j + 1], datos_ok[j]
+        n_ok = len(datos_ok)
+        for i in range(n_ok - 1):
+            cur = datos_ok.head
+            for _ in range(n_ok - 1 - i):
+                if cur.data > cur.next.data:
+                    cur.data, cur.next.data = cur.next.data, cur.data
+                cur = cur.next
     finally:
         if os.path.exists(ruta_tmp):
             os.remove(ruta_tmp)
 
     return {
         "id": 4,
-        "categoria": "Errores de Manejo de Archivos (Conversión de Tipos y Recursos)",
+        "categoria": "Errores de Manejo de Archivos al Poblar MyLinkedList",
         "codigo_defectuoso": CODIGO_DEFECTUOSO_4,
         "codigo_corregido": CODIGO_CORREGIDO_4,
         "identificacion_error": (
-            "1) Abre el archivo sin bloque `with` ni `.close()`, provocando fugas de descriptores de archivo. "
-            "2) No elimina saltos de línea (`.strip()`) ni filtra líneas en blanco. "
-            "3) Mantiene los datos como cadenas (`str`), causando que el ordenamiento sea lexicográfico ASCII "
+            "1) Abre el archivo sin bloque `with` ni `.close()`. "
+            "2) No elimina saltos de línea (`.strip()`) ni filtra líneas vacías. "
+            "3) Inserta cadenas (`str`) en los nodos de `MyLinkedList`, causando ordenamiento lexicográfico ASCII "
             "(`'1000' < '25' < '300' < '9'`) en lugar de numérico."
         ),
         "explicacion_solucion": (
-            "Se implementó el administrador de contexto `with open(..., encoding='utf-8')`, se limpió cada "
-            "línea con `.strip()`, se descartaron líneas vacías y se convirtió cada registro a `int()`."
+            "Se implementó `with open(..., encoding='utf-8')`, se limpió cada línea con `.strip()`, se descartaron "
+            "líneas vacías y se insertó cada valor con `datos_ll.append(int(limpia))` en `MyLinkedList`."
         ),
-        "entrada_prueba": ["1000", "25", "", "9", "300"],
-        "resultado_defectuoso": f"Orden lexicográfico incorrecto sobre strings: {lex}",
-        "resultado_corregido": datos_ok,
+        "entrada_prueba": "['1000', '25', '', '9', '300']",
+        "resultado_defectuoso": f"Orden lexicográfico incorrecto en MyLinkedList: {lex_ll.to_list()}",
+        "resultado_corregido": datos_ok.to_list(),
+        "resultado_linked_list": repr(datos_ok),
     }
 
 
 # =====================================================================
-# CASO 5: ERROR DE BÚSQUEDA INCORRECTA (CICLO INFINITO Y LÍMITES EN BINARIA)
+# CASO 5: ERROR DE BÚSQUEDA INCORRECTA SOBRE MYLINKEDLIST
 # =====================================================================
-CODIGO_DEFECTUOSO_5 = """def busqueda_binaria_defectuosa(lista, objetivo):
+CODIGO_DEFECTUOSO_5 = """def busqueda_binaria_defectuosa(lista_ll, objetivo):
     izq = 0
-    der = len(lista) - 1
-    # ERROR 1: Usa '<' en vez de '<=', por lo que falla cuando izq == der (último elemento)
+    der = len(lista_ll) - 1
+    # ERROR 1: Usa '<' en vez de '<=', por lo que falla cuando izq == der (último nodo)
     while izq < der:
         medio = (izq + der) // 2
-        if lista[medio] == objetivo:
+        if lista_ll[medio] == objetivo:
             return medio
-        elif lista[medio] < objetivo:
-            # ERROR 2: Asigna izq = medio (sin +1) e invierte o estanca los punteros.
-            # Cuando izq + 1 == der, medio == izq, causando un ciclo infinito.
+        elif lista_ll[medio] < objetivo:
+            # ERROR 2: Asigna izq = medio (sin +1). Cuando izq + 1 == der,
+            # medio == izq, causando un ciclo infinito.
             izq = medio
         else:
             der = medio
     return -1"""
 
-CODIGO_CORREGIDO_5 = """def busqueda_binaria_corregida(lista, objetivo):
+CODIGO_CORREGIDO_5 = """def busqueda_binaria_corregida(lista_ll, objetivo):
     izq = 0
-    der = len(lista) - 1
-    # CORRECCIÓN 1: Condición 'izq <= der' evalúa incluso cuando queda 1 solo elemento
+    der = len(lista_ll) - 1
+    # CORRECCIÓN 1: Condición 'izq <= der' evalúa incluso cuando queda 1 solo nodo
     while izq <= der:
         medio = (izq + der) // 2
-        if lista[medio] == objetivo:
+        val_medio = lista_ll[medio]
+        if val_medio == objetivo:
             return medio
-        elif lista[medio] < objetivo:
+        elif val_medio < objetivo:
             # CORRECCIÓN 2: Descartar 'medio' usando medio + 1 y medio - 1
             izq = medio + 1
         else:
@@ -365,10 +396,9 @@ CODIGO_CORREGIDO_5 = """def busqueda_binaria_corregida(lista, objetivo):
 
 
 def probar_caso_5_busquedas():
-    muestra = [10, 25, 40, 55, 70, 85, 100]
+    muestra = MyLinkedList([10, 25, 40, 55, 70, 85, 100])
     objetivo = 100
 
-    # Simular búsqueda defectuosa con límite de iteraciones para evidenciar el ciclo infinito
     izq = 0
     der = len(muestra) - 1
     pasos = 0
@@ -377,7 +407,7 @@ def probar_caso_5_busquedas():
         pasos += 1
         if pasos > 25:
             fallo_detectado = (
-                f"Ciclo infinito detectado tras {pasos} iteraciones "
+                f"Ciclo infinito detectado tras {pasos} iteraciones sobre MyLinkedList "
                 f"(izq={izq}, der={der}, medio={(izq+der)//2} no avanza hacia {objetivo})"
             )
             break
@@ -389,44 +419,42 @@ def probar_caso_5_busquedas():
         else:
             der = medio
 
-    # Ejecutar búsqueda corregida
     izq = 0
     der = len(muestra) - 1
     idx_ok = -1
     while izq <= der:
         medio = (izq + der) // 2
-        if muestra[medio] == objetivo:
+        val_medio = muestra[medio]
+        if val_medio == objetivo:
             idx_ok = medio
             break
-        elif muestra[medio] < objetivo:
+        elif val_medio < objetivo:
             izq = medio + 1
         else:
             der = medio - 1
 
     return {
         "id": 5,
-        "categoria": "Errores en Búsquedas (Ciclo Infinito y Exclusión de Extremos en Binaria)",
+        "categoria": "Errores en Búsquedas sobre MyLinkedList (Ciclo Infinito en Binaria)",
         "codigo_defectuoso": CODIGO_DEFECTUOSO_5,
         "codigo_corregido": CODIGO_CORREGIDO_5,
         "identificacion_error": (
             "1) La condición `while izq < der` omite la verificación cuando `izq == der`. "
-            "2) Al actualizar `izq = medio` en lugar de `izq = medio + 1`, la división entera `(izq + der) // 2` "
-            "cuando `der == izq + 1` siempre devuelve `izq`, dejando los punteros estancados en un ciclo infinito "
-            "al buscar el último elemento (`100`) o un valor inexistente."
+            "2) Al actualizar `izq = medio` en lugar de `izq = medio + 1`, cuando `der == izq + 1` la división "
+            "`(izq + der) // 2` siempre devuelve `izq`, estancando la búsqueda sobre `MyLinkedList` en un ciclo infinito."
         ),
         "explicacion_solucion": (
             "Se cambió la condición del ciclo a `while izq <= der:` y se actualizaron los límites excluyendo "
-            "la posición media ya evaluada (`izq = medio + 1` y `der = medio - 1`), garantizando convergencia "
-            "en O(log n)."
+            "la posición media ya evaluada (`izq = medio + 1` y `der = medio - 1`), logrando convergencia en O(log n)."
         ),
-        "entrada_prueba": f"Lista={muestra}, Objetivo={objetivo}",
+        "entrada_prueba": f"{repr(muestra)}, Objetivo={objetivo}",
         "resultado_defectuoso": fallo_detectado,
-        "resultado_corregido": f"Valor {objetivo} encontrado exitosamente en el índice {idx_ok}",
+        "resultado_corregido": f"Valor {objetivo} encontrado exitosamente en el nodo índice {idx_ok}",
     }
 
 
 def ejecutar_todos_los_casos_defectuosos():
-    """Ejecuta y devuelve el reporte completo de los 5 casos de código defectuoso."""
+    """Ejecuta y devuelve el reporte completo de los 5 casos de código defectuoso con MyLinkedList."""
     return [
         probar_caso_1_indices(),
         probar_caso_2_recursividad(),

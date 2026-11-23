@@ -1,73 +1,83 @@
 """
-Librería de Manejo de Archivos y Generación de Datasets Financieros.
-Cumple con los requerimientos 1, 5A, 5D y 5E del Examen Parcial:
+Librería de Manejo de Archivos y Generación de Datasets Financieros usando `MyLinkedList.py`.
+Cumple con los requerimientos 1, 2, 5A, 5D y 5E del Examen Parcial:
+- Carga todos los números enteros directamente en una instancia de tu librería propia `MyLinkedList`.
 - Lectura de archivos de 1000 y 5000 números enteros en formatos TXT y XLSX.
 - Uso permitido de pandas (solo lectura/escritura), openpyxl, time, os.
-- Visualización de primeros 20 elementos, últimos 20 elementos y total de registros.
-- Exportación de resultados en TXT y XLSX incluyendo archivo ordenado, tiempo de ejecución
-  y algoritmo utilizado.
+- Visualización de primeros 20 elementos, últimos 20 elementos y total de registros desde `MyLinkedList`.
+- Exportación de resultados en TXT y XLSX recorriendo los nodos de `MyLinkedList`.
 """
 
 import os
 import random
 import time
 import pandas as pd
+from MyLinkedList import MyLinkedList
 
 
 def generar_datasets_financieros(directorio_datos="datos", semilla=42):
     """
-    Genera los datasets oficiales requeridos por el examen:
+    Genera los datasets oficiales requeridos por el examen utilizando `MyLinkedList`:
     - 1,000 números enteros (TXT y XLSX)
     - 5,000 números enteros (TXT y XLSX)
-    - Además un dataset parcialmente ordenado de 1,000 registros para pruebas comparativas.
-    Simula montos de transacciones financieras en pesos (entre -25,000 y 500,000).
     """
     os.makedirs(directorio_datos, exist_ok=True)
     rng = random.Random(semilla)
 
-    # Dataset 1: 1,000 transacciones financieras enteras
-    datos_1000 = [rng.randint(-15000, 250000) for _ in range(1000)]
-    # Inyectar valores conocidos para facilitar demostraciones de búsqueda en vivo
-    datos_1000[125] = 77777
-    datos_1000[840] = 77777
-    datos_1000[500] = 123456
+    # Dataset 1: 1,000 transacciones financieras enteras en MyLinkedList
+    datos_1000 = MyLinkedList()
+    for i in range(1000):
+        if i in (125, 840):
+            datos_1000.append(77777)
+        elif i == 500:
+            datos_1000.append(123456)
+        else:
+            datos_1000.append(rng.randint(-15000, 250000))
 
-    # Dataset 2: 5,000 transacciones financieras enteras
-    datos_5000 = [rng.randint(-25000, 500000) for _ in range(5000)]
-    datos_5000[42] = 99999
-    datos_5000[2500] = 99999
-    datos_5000[4910] = 314159
+    # Dataset 2: 5,000 transacciones financieras enteras en MyLinkedList
+    datos_5000 = MyLinkedList()
+    for i in range(5000):
+        if i in (42, 2500):
+            datos_5000.append(99999)
+        elif i == 4910:
+            datos_5000.append(314159)
+        else:
+            datos_5000.append(rng.randint(-25000, 500000))
 
     archivos_creados = {}
 
-    # Guardar 1000 en TXT
+    # Guardar 1000 en TXT recorriendo los nodos de MyLinkedList
     ruta_txt_1000 = os.path.join(directorio_datos, "transacciones_1000.txt")
     with open(ruta_txt_1000, "w", encoding="utf-8") as f:
-        for val in datos_1000:
-            f.write(f"{val}\n")
+        cur = datos_1000.head
+        while cur is not None:
+            f.write(f"{cur.data}\n")
+            cur = cur.next
     archivos_creados["txt_1000"] = ruta_txt_1000
 
     # Guardar 1000 en XLSX usando pandas + openpyxl
     ruta_xlsx_1000 = os.path.join(directorio_datos, "transacciones_1000.xlsx")
     df_1000 = pd.DataFrame({
-        "ID_Transaccion": [f"TRX-{i+1:04d}" for i in range(1000)],
-        "Monto_Entero": datos_1000,
+        "ID_Transaccion": [f"TRX-{i+1:04d}" for i in range(len(datos_1000))],
+        "Monto_Entero": datos_1000.to_list(),
     })
     df_1000.to_excel(ruta_xlsx_1000, index=False, engine="openpyxl")
     archivos_creados["xlsx_1000"] = ruta_xlsx_1000
 
-    # Guardar 5000 en TXT
+    # Guardar 5000 en TXT recorriendo los nodos de MyLinkedList
     ruta_txt_5000 = os.path.join(directorio_datos, "transacciones_5000.txt")
     with open(ruta_txt_5000, "w", encoding="utf-8") as f:
-        for val in datos_5000:
-            f.write(f"{val}\n")
+        cur = datos_5000.head
+        while cur is not None:
+            f.write(f"{cur.data}\n")
+            cur = cur.next
     archivos_creados["txt_5000"] = ruta_txt_5000
 
     # Guardar 5000 en XLSX usando pandas + openpyxl
     ruta_xlsx_5000 = os.path.join(directorio_datos, "transacciones_5000.xlsx")
     df_5000 = pd.DataFrame({
-        "ID_Transaccion": [f"TRX-{i+1:05d}" for i in range(5000)],
-        "Monto_Entero": datos_5000,
+        "ID_Transaccion": [f"TRX-{i+1:05d}" for i in range(len(datos_5000))],
+        "Monto_Entero": datos_5000.to_list(),
     })
     df_5000.to_excel(ruta_xlsx_5000, index=False, engine="openpyxl")
     archivos_creados["xlsx_5000"] = ruta_xlsx_5000
@@ -77,15 +87,15 @@ def generar_datasets_financieros(directorio_datos="datos", semilla=42):
 
 def cargar_archivo_datos(ruta_archivo):
     """
-    Lee un archivo TXT o XLSX y extrae la lista de números enteros junto con
-    metadatos de lectura (tiempo de carga, formato, ruta, total de registros).
+    Lee un archivo TXT o XLSX e inserta cada número entero directamente mediante `.append()`
+    en una instancia de tu librería propia `MyLinkedList`.
     """
     if not os.path.exists(ruta_archivo):
         raise FileNotFoundError(f"El archivo '{ruta_archivo}' no existe.")
 
     t0 = time.perf_counter()
     ext = os.path.splitext(ruta_archivo)[1].lower()
-    numeros = []
+    numeros_ll = MyLinkedList()
 
     if ext == ".txt":
         with open(ruta_archivo, "r", encoding="utf-8") as f:
@@ -93,16 +103,14 @@ def cargar_archivo_datos(ruta_archivo):
                 limpia = linea.strip()
                 if not limpia or limpia.startswith("#"):
                     continue
-                # Soportar números separados por coma, espacio o salto de línea
                 partes = limpia.replace(",", " ").split()
                 for p in partes:
                     try:
-                        numeros.append(int(float(p)))
+                        numeros_ll.append(int(float(p)))
                     except ValueError:
                         continue
     elif ext == ".xlsx":
         df = pd.read_excel(ruta_archivo, engine="openpyxl")
-        # Buscar columna numérica (priorizando 'Monto_Entero' o la última columna numérica)
         col_objetivo = None
         if "Monto_Entero" in df.columns:
             col_objetivo = "Monto_Entero"
@@ -113,7 +121,8 @@ def cargar_archivo_datos(ruta_archivo):
         if col_objetivo is None and len(df.columns) > 0:
             col_objetivo = df.columns[0]
         if col_objetivo is not None:
-            numeros = [int(x) for x in df[col_objetivo].dropna().tolist()]
+            for x in df[col_objetivo].dropna():
+                numeros_ll.append(int(x))
     else:
         raise ValueError(f"Formato no permitido: '{ext}'. Solo se permiten archivos .TXT y .XLSX.")
 
@@ -122,45 +131,67 @@ def cargar_archivo_datos(ruta_archivo):
         "ruta": ruta_archivo,
         "nombre_archivo": os.path.basename(ruta_archivo),
         "formato": ext.upper().replace(".", ""),
-        "datos": numeros,
-        "total_registros": len(numeros),
+        "estructura": "MyLinkedList",
+        "datos": numeros_ll,
+        "total_registros": len(numeros_ll),
         "tiempo_lectura_ms": (t1 - t0) * 1000.0,
     }
 
 
-def obtener_resumen_resultados(lista):
+def obtener_resumen_resultados(lista_enlazada):
     """
-    Requerimiento 5D: Mostrar primeros 20 elementos, últimos 20 elementos y total de registros.
-    Calcula además mínimo, máximo y suma manualmente sin usar funciones de ordenamiento.
+    Requerimiento 5D: Recorre en un solo paso O(n) los nodos `Node` de `MyLinkedList` para obtener:
+    - Primeros 20 elementos (como `MyLinkedList` y lista para visualización)
+    - Últimos 20 elementos (como `MyLinkedList` y lista para visualización)
+    - Total de registros (`len(MyLinkedList)`)
+    - Mínimo, máximo y promedio.
     """
-    n = len(lista)
-    if n == 0:
+    ll = lista_enlazada if isinstance(lista_enlazada, MyLinkedList) else MyLinkedList(lista_enlazada)
+    n = len(ll)
+    if n == 0 or ll.head is None:
         return {
+            "estructura": "MyLinkedList",
             "total_registros": 0,
             "primeros_20": [],
             "ultimos_20": [],
+            "primeros_20_ll": MyLinkedList(),
+            "ultimos_20_ll": MyLinkedList(),
             "minimo": 0,
             "maximo": 0,
             "promedio": 0.0,
         }
 
-    primeros_20 = lista[:20]
-    ultimos_20 = lista[-20:] if n >= 20 else lista[:]
+    primeros_20_ll = MyLinkedList()
+    ultimos_20_ll = MyLinkedList()
+    inicio_ultimos = max(0, n - 20)
 
-    minimo = lista[0]
-    maximo = lista[0]
+    minimo = ll.head.data
+    maximo = ll.head.data
     suma = 0
-    for x in lista:
-        if x < minimo:
-            minimo = x
-        if x > maximo:
-            maximo = x
-        suma += x
+
+    cur = ll.head
+    idx = 0
+    while cur is not None:
+        val = cur.data
+        if idx < 20:
+            primeros_20_ll.append(val)
+        if idx >= inicio_ultimos:
+            ultimos_20_ll.append(val)
+        if val < minimo:
+            minimo = val
+        if val > maximo:
+            maximo = val
+        suma += val
+        cur = cur.next
+        idx += 1
 
     return {
+        "estructura": "MyLinkedList",
         "total_registros": n,
-        "primeros_20": primeros_20,
-        "ultimos_20": ultimos_20,
+        "primeros_20": primeros_20_ll.to_list(),
+        "ultimos_20": ultimos_20_ll.to_list(),
+        "primeros_20_ll": primeros_20_ll,
+        "ultimos_20_ll": ultimos_20_ll,
         "minimo": minimo,
         "maximo": maximo,
         "promedio": suma / n,
@@ -179,13 +210,16 @@ def exportar_resultados(
     formato="AMBOS",
 ):
     """
-    Requerimiento 5E: Exportar resultados guardando:
+    Requerimiento 5E: Exportar resultados desde `MyLinkedList` guardando:
     - Archivo ordenado
     - Tiempo de ejecución
     - Algoritmo utilizado
-    Soporta exportación tanto a TXT como a XLSX (con hoja de Metadatos y hoja de Datos Ordenados).
+    - Estructura utilizada (`MyLinkedList`)
     """
     os.makedirs(directorio_salida, exist_ok=True)
+    ll = datos_ordenados if isinstance(datos_ordenados, MyLinkedList) else MyLinkedList(datos_ordenados)
+    res_20 = obtener_resumen_resultados(ll)
+
     marca_tiempo = time.strftime("%Y%m%d_%H%M%S")
     nombre_limpio = (
         algoritmo_utilizado.lower()
@@ -194,7 +228,7 @@ def exportar_resultados(
         .replace(")", "")
         .replace("/", "_")
     )
-    n = len(datos_ordenados)
+    n = len(ll)
     rutas_generadas = {}
 
     if formato.upper() in ("TXT", "AMBOS"):
@@ -204,33 +238,37 @@ def exportar_resultados(
             f.write("# REPORTE DE EXPORTACIÓN - SISTEMA DE PROCESAMIENTO MASIVO DE DATOS\n")
             f.write("# =================================================================\n")
             f.write(f"# Archivo de origen   : {archivo_origen}\n")
+            f.write(f"# Librería / TDA base : MyLinkedList (MyLinkedList.py)\n")
             f.write(f"# Algoritmo utilizado : {algoritmo_utilizado}\n")
             f.write(f"# Orden aplicado      : {orden}\n")
             f.write(f"# Tiempo de ejecución : {tiempo_ejecucion_seg:.6f} segundos ({tiempo_ejecucion_seg*1000:.4f} ms)\n")
             f.write(f"# Total de registros  : {n}\n")
             f.write(f"# Comparaciones       : {comparaciones}\n")
             f.write(f"# Intercambios/Movs   : {intercambios}\n")
-            f.write(f"# Primeros 20         : {datos_ordenados[:20]}\n")
-            f.write(f"# Últimos 20          : {datos_ordenados[-20:]}\n")
+            f.write(f"# Primeros 20         : {res_20['primeros_20']}\n")
+            f.write(f"# Últimos 20          : {res_20['ultimos_20']}\n")
             f.write("# =================================================================\n")
-            for val in datos_ordenados:
-                f.write(f"{val}\n")
+            cur = ll.head
+            while cur is not None:
+                f.write(f"{cur.data}\n")
+                cur = cur.next
         rutas_generadas["TXT"] = ruta_txt
 
     if formato.upper() in ("XLSX", "AMBOS"):
         ruta_xlsx = os.path.join(directorio_salida, f"ordenado_{n}_{nombre_limpio}_{marca_tiempo}.xlsx")
         df_datos = pd.DataFrame({
-            "Posicion_Ordenada": list(range(1, n + 1)),
-            "Monto_Entero": datos_ordenados,
+            "Posicion_Nodo_MyLinkedList": list(range(1, n + 1)),
+            "Monto_Entero": ll.to_list(),
         })
         df_meta = pd.DataFrame({
             "Parametro": [
                 "Archivo de Origen",
+                "Librería Propia Utilizada",
                 "Algoritmo Utilizado",
                 "Orden Aplicado",
                 "Tiempo de Ejecución (segundos)",
                 "Tiempo de Ejecución (milisegundos)",
-                "Total de Registros Procesados",
+                "Total de Nodos en MyLinkedList",
                 "Comparaciones Realizadas",
                 "Intercambios / Movimientos",
                 "Primeros 20 Elementos",
@@ -238,6 +276,7 @@ def exportar_resultados(
             ],
             "Valor": [
                 str(archivo_origen),
+                "MyLinkedList.py (Node & MyLinkedList)",
                 str(algoritmo_utilizado),
                 str(orden),
                 f"{tiempo_ejecucion_seg:.6f} s",
@@ -245,8 +284,8 @@ def exportar_resultados(
                 str(n),
                 str(comparaciones),
                 str(intercambios),
-                str(datos_ordenados[:20]),
-                str(datos_ordenados[-20:]),
+                str(res_20["primeros_20"]),
+                str(res_20["ultimos_20"]),
             ],
         })
         with pd.ExcelWriter(ruta_xlsx, engine="openpyxl") as writer:

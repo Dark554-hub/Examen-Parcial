@@ -41,8 +41,8 @@ archivos_oficiales = generar_datasets_financieros("datos", semilla=42)
 if "info_archivo" not in st.session_state:
     info_init = cargar_archivo_datos(archivos_oficiales["txt_1000"])
     st.session_state["info_archivo"] = info_init
-    st.session_state["datos_originales"] = info_init["datos"][:]
-    st.session_state["datos_actuales"] = info_init["datos"][:]
+    st.session_state["datos_originales"] = info_init["datos"].copy()
+    st.session_state["datos_actuales"] = info_init["datos"].copy()
     st.session_state["esta_ordenado"] = False
     st.session_state["ascendente"] = True
     st.session_state["ultimo_ordenamiento"] = None
@@ -50,7 +50,8 @@ if "info_archivo" not in st.session_state:
 st.title("📊 Sistema de Procesamiento y Ordenamiento Masivo de Datos")
 st.caption(
     "**Examen Parcial — Estructura de Datos** | **Alumno:** Emiliano Cab Martínez | "
-    "**Librerías Propias:** Internos (`ADA1`/`ADA2`) y Externos (`MetOrdena`) sin `.sort()` ni `sorted()`"
+    "**Librería Propia Base:** `MyLinkedList.py` (`Node` y `MyLinkedList`) | "
+    "**Algoritmos:** Internos (`ADA1`/`ADA2`) y Externos (`MetOrdena`) sin `.sort()` ni `sorted()`"
 )
 
 # Barra lateral de estado
@@ -58,17 +59,18 @@ with st.sidebar:
     st.header("⚙️ Estado del Sistema")
     info_act = st.session_state["info_archivo"]
     st.metric("Archivo Activo", info_act["nombre_archivo"])
-    st.metric("Formato / Registros", f"{info_act['formato']} ({len(st.session_state['datos_actuales']):,})")
+    st.metric("Librería / TDA Base", f"MyLinkedList ({len(st.session_state['datos_actuales']):,} nodos)")
     if st.session_state["esta_ordenado"] and st.session_state["ultimo_ordenamiento"]:
         ult = st.session_state["ultimo_ordenamiento"]
         st.success(f"Ordenado con: {ult['algoritmo']} ({ult['orden']})")
         st.metric("Tiempo de Ordenamiento", f"{ult['tiempo_ms']:.4f} ms")
     else:
-        st.warning("Estado: Datos Originales (Sin Ordenar)")
+        st.warning("Estado: Nodos Originales en MyLinkedList (Sin Ordenar)")
 
     st.divider()
     st.markdown("### 📦 Librerías Propias Integradas")
     st.markdown(
+        "- **`MyLinkedList.py` (TDA Lista Enlazada Propia)**\n"
         "- `librerias/ordenamientos_internos.py`\n"
         "- `librerias/ordenamientos_externos.py`\n"
         "- `librerias/busquedas.py`\n"
@@ -104,11 +106,11 @@ with tabs[0]:
             ],
             format_func=lambda x: x[0],
         )
-        if st.button("📥 Cargar Archivo Seleccionado", type="primary"):
+        if st.button("📥 Cargar Archivo Seleccionado en MyLinkedList", type="primary"):
             nueva_info = cargar_archivo_datos(seleccion[1])
             st.session_state["info_archivo"] = nueva_info
-            st.session_state["datos_originales"] = nueva_info["datos"][:]
-            st.session_state["datos_actuales"] = nueva_info["datos"][:]
+            st.session_state["datos_originales"] = nueva_info["datos"].copy()
+            st.session_state["datos_actuales"] = nueva_info["datos"].copy()
             st.session_state["esta_ordenado"] = False
             st.session_state["ultimo_ordenamiento"] = None
             st.rerun()
@@ -123,8 +125,8 @@ with tabs[0]:
             nueva_info = cargar_archivo_datos(ruta_tmp)
             nueva_info["nombre_archivo"] = archivo_subido.name
             st.session_state["info_archivo"] = nueva_info
-            st.session_state["datos_originales"] = nueva_info["datos"][:]
-            st.session_state["datos_actuales"] = nueva_info["datos"][:]
+            st.session_state["datos_originales"] = nueva_info["datos"].copy()
+            st.session_state["datos_actuales"] = nueva_info["datos"].copy()
             st.session_state["esta_ordenado"] = False
             st.session_state["ultimo_ordenamiento"] = None
 
@@ -236,10 +238,14 @@ with tabs[1]:
 # TAB 3: MÉTODOS DE BÚSQUEDA
 # =====================================================================
 with tabs[2]:
-    st.subheader("C) Métodos de Búsqueda: Secuencial, Binaria y Tabla Hash")
+    st.subheader("C) Métodos de Búsqueda sobre MyLinkedList: Secuencial, Binaria y Tabla Hash")
     datos_busq = st.session_state["datos_actuales"]
-    sugeridos = [datos_busq[0], datos_busq[len(datos_busq) // 2], datos_busq[-1]]
-    st.info(f"💡 Valores presentes en el dataset actual para probar: `{sugeridos[0]}`, `{sugeridos[1]}`, `{sugeridos[2]}`")
+    sugeridos = [
+        datos_busq.head.data if datos_busq.head else 0,
+        datos_busq[len(datos_busq) // 2] if len(datos_busq) > 0 else 0,
+        datos_busq.tail.data if datos_busq.tail else 0,
+    ]
+    st.info(f"💡 Valores presentes en la MyLinkedList actual para probar: `{sugeridos[0]}`, `{sugeridos[1]}`, `{sugeridos[2]}`")
 
     cb1, cb2 = st.columns([1, 2])
     with cb1:

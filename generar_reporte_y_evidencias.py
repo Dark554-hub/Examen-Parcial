@@ -240,27 +240,29 @@ def generar_pdf_reporte(ruta_pdf, datos_reporte):
             "mientras que algoritmos cuadráticos O(n²) son útiles en lotes pequeños o casi ordenados, los volúmenes\n"
             "masivos requieren estrategias logarítmicas O(n log n), lineales por dígitos O(d·n) o algoritmos\n"
             "externos por corridas sobre archivos auxiliares F1 y F2 cuando los datos residen en disco.\n\n"
-            "2. DESARROLLO — INTEGRACIÓN DE LIBRERÍAS PROPIAS (REQUERIMIENTO 2)\n"
-            "Se reutilizaron e integraron en el paquete modular `librerias/` los algoritmos propios desarrollados\n"
-            "previamente en las prácticas de la asignatura (ADA1, ADA2 y MetOrdena):\n\n"
-            "A) Librería de Ordenamientos Internos (`librerias/ordenamientos_internos.py`):\n"
-            "   • Burbuja (Bubble Sort - ADA1): Compara pares adyacentes con corte temprano O(n) si ya hay orden.\n"
-            "   • Inserción (Insertion Sort - ADA1): Inserta cada elemento en la sublista ordenada previa; O(n) adaptativo.\n"
-            "   • Selección (Selection Sort - ADA1): Busca el extremo (mínimo/máximo) y realiza a lo sumo n-1 swaps.\n"
-            "   • ShellSort (ADA2): Generaliza Inserción mediante saltos decrecientes (n/2, n/4, ..., 1).\n"
-            "   • Quicksort (ADA2): Divide y vencerás mediante partición tripartita (<, ==, >) en O(n log n) promedio.\n"
-            "   • Heapsort (ADA2): Construye un montículo binario (Max-Heap/Min-Heap) garantizando O(n log n) in-place.\n"
-            "   • Radix Sort LSD (ADA2): Ordenamiento no comparativo por dígitos con soporte para negativos y positivos.\n\n"
-            "B) Librería de Ordenamientos Externos (`librerias/ordenamientos_externos.py`):\n"
-            "   • Intercalación (MetOrdena/intercalacion.py): Fusión lineal O(n+m) de secuencias ordenadas con dos punteros.\n"
-            "   • Mezcla Directa (MetOrdena/mezcla_directa.py): Particiona en archivos auxiliares F1 y F2 con bloques de\n"
-            "     tamaño fijo (1, 2, 4, 8, 16...) duplicados en cada pasada hasta completar ceil(log2(n)) pasadas.\n"
-            "   • Mezcla Equilibrada / Natural (MetOrdena/mezcla_equilibrada.py): Detecta corridas ordenadas naturalmente\n"
-            "     en el flujo de datos y las distribuye alternadamente entre F1 y F2, minimizando pasadas de disco.\n\n"
-            "C) Librería de Métodos de Búsqueda (`librerias/busquedas.py` - Requerimientos 3 y 5C):\n"
-            "   • Búsqueda Secuencial O(n): Recorrido exhaustivo compatible con datos sin ordenar.\n"
-            "   • Búsqueda Binaria O(log n): Búsqueda dicotómica sobre datos ordenados (ascendente o descendente).\n"
-            "   • Búsqueda por Tabla Hash O(1): Indexación modular con encadenamiento separado para consultas frecuentes."
+            "2. DESARROLLO — INTEGRACIÓN DE LIBRERÍA PROPIA `MyLinkedList.py` (REQUERIMIENTO 2)\n"
+            "El núcleo de todo el sistema reutiliza obligatoriamente la librería propia `MyLinkedList.py` (`Node` y\n"
+            "`MyLinkedList`) desarrollada en `estructura/MyLinkedList.py`, junto con los algoritmos propios:\n"
+            "• `MyLinkedList.py`: Lista enlazada simple con punteros `head` y `tail`, nodos `Node(data, next)`, inserción\n"
+            "  en O(1) (`append`, `prepend`), inversión por punteros `.reverse()` en O(n) e iteración nativa.\n\n"
+            "A) Librería de Ordenamientos Internos sobre `MyLinkedList` (`librerias/ordenamientos_internos.py`):\n"
+            "   • Burbuja (ADA1): Recorre los punteros `cur = ll.head` y `cur.next`, intercambiando `cur.data` y `sig.data`.\n"
+            "   • Inserción (ADA1): Inserta cada elemento en orden y reconstruye la instancia `MyLinkedList`.\n"
+            "   • Selección (ADA1): Recorre `nodo_i` y `nodo_j = nodo_i.next` para seleccionar el nodo extremo y hacer swap.\n"
+            "   • ShellSort (ADA2): Generaliza Inserción mediante saltos decrecientes (n/2, n/4, ..., 1) sobre `MyLinkedList`.\n"
+            "   • Quicksort (ADA2): Particiona recursivamente en 3 listas enlazadas `MyLinkedList` (`menores`, `iguales`, `mayores`).\n"
+            "   • Heapsort (ADA2): Montículo binario O(n log n) retornado como instancia de `MyLinkedList`.\n"
+            "   • Radix Sort LSD (ADA2): Distribuye los nodos en 10 cubetas que son instancias de `MyLinkedList`.\n\n"
+            "B) Librería de Ordenamientos Externos sobre `MyLinkedList` (`librerias/ordenamientos_externos.py`):\n"
+            "   • Intercalación (MetOrdena): Fusión lineal O(n+m) avanzando punteros `cur_a` y `cur_b` de dos `MyLinkedList`.\n"
+            "   • Mezcla Directa (MetOrdena): Particiona en listas enlazadas auxiliares `F1` y `F2` (`MyLinkedList` de tramos)\n"
+            "     con bloques de tamaño 1, 2, 4, 8, 16... duplicados en cada pasada.\n"
+            "   • Mezcla Equilibrada / Natural (MetOrdena): Detecta corridas naturales como instancias `MyLinkedList` y las\n"
+            "     reparte alternadamente entre las `MyLinkedList` auxiliares `F1` y `F2`.\n\n"
+            "C) Librería de Métodos de Búsqueda con `MyLinkedList` (`librerias/busquedas.py` - Requerimientos 3 y 5C):\n"
+            "   • Búsqueda Secuencial O(n): Recorrido de punteros `cur = ll.head` -> `cur.next` guardando índices en `MyLinkedList`.\n"
+            "   • Búsqueda Binaria O(log n): Búsqueda dicotómica sobre `MyLinkedList` ordenada.\n"
+            "   • Búsqueda por Tabla Hash O(1): Cada cubeta (bucket) es una `MyLinkedList` para resolver colisiones por encadenamiento."
         )
         ax.text(0.06, 0.89, texto_intro, color="#0f172a", fontsize=9.2, va="top", linespacing=1.38)
         pdf.savefig(fig)
@@ -485,29 +487,31 @@ def main():
     busq_5000 = ejecutar_benchmark_busquedas(res_qs_5000["datos"], 99999, ascendente=True)
     casos_def = ejecutar_todos_los_casos_defectuosos()
 
-    # Captura 1: Carga de TXT (1,000) y XLSX (5,000) + Ordenamiento Interno/Externo + 20/20
+        # Captura 1: Carga de TXT (1,000) y XLSX (5,000) en MyLinkedList + Ordenamiento Interno/Externo + 20/20
+    res20_5000 = obtener_resumen_resultados(res_qs_5000["datos"])
+    res20_1000 = obtener_resumen_resultados(res_meq_1000["datos"])
     lineas_cap1 = [
         "PS C:\\Users\\Emili\\OneDrive\\Desktop\\Examen Parcial> python main.py",
         "======================================================================================",
-        "  SISTEMA DE PROCESAMIENTO Y ORDENAMIENTO MASIVO DE DATOS FINANCIEROS",
+        "  SISTEMA DE PROCESAMIENTO Y ORDENAMIENTO MASIVO DE DATOS (LIBRERIA MYLINKEDLIST.PY)",
         "======================================================================================",
-        f"[OK] Archivo TXT cargado  : {info_1000['nombre_archivo']} | Total registros: {info_1000['total_registros']:,}",
-        f"[OK] Archivo XLSX cargado : {info_5000['nombre_archivo']} | Total registros: {info_5000['total_registros']:,}",
+        f"[OK] Archivo TXT en MyLinkedList  : {info_1000['nombre_archivo']} | Total nodos: {info_1000['total_registros']:,}",
+        f"[OK] Archivo XLSX en MyLinkedList : {info_5000['nombre_archivo']} | Total nodos: {info_5000['total_registros']:,}",
         "--------------------------------------------------------------------------------------",
-        f"[ORDENAMIENTO INTERNO] Algoritmo: {res_qs_5000['algoritmo']} | Orden: {res_qs_5000['orden']}",
+        f"[ORDENAMIENTO INTERNO SOBRE MYLINKEDLIST] Algoritmo: {res_qs_5000['algoritmo']} ({res_qs_5000['orden']})",
         f"  Tiempo ejecucion: {res_qs_5000['tiempo_seg']:.6f} s ({res_qs_5000['tiempo_ms']:.4f} ms) | Comparaciones: {res_qs_5000['comparaciones']:,}",
-        f"  Primeros 20 (5000 reg): {res_qs_5000['datos'][:10]} ...",
-        f"                          {res_qs_5000['datos'][10:20]}",
-        f"  Ultimos 20  (5000 reg): {res_qs_5000['datos'][-20:-10]} ...",
-        f"                          {res_qs_5000['datos'][-10:]}",
+        f"  Primeros 20 nodos (5000): {res20_5000['primeros_20'][:10]} ...",
+        f"                            {res20_5000['primeros_20'][10:20]}",
+        f"  Ultimos 20 nodos  (5000): {res20_5000['ultimos_20'][:10]} ...",
+        f"                            {res20_5000['ultimos_20'][10:20]}",
         "--------------------------------------------------------------------------------------",
-        f"[ORDENAMIENTO EXTERNO] Algoritmo: {res_meq_1000['algoritmo']} (MetOrdena)",
+        f"[ORDENAMIENTO EXTERNO SOBRE MYLINKEDLIST] Algoritmo: {res_meq_1000['algoritmo']}",
         f"  Tiempo ejecucion: {res_meq_1000['tiempo_ms']:.4f} ms | Corridas iniciales: {res_meq_1000['tramos_iniciales']} | Pasadas: {res_meq_1000['pasadas_externas']}",
-        f"  Primeros 20 (1000 reg): {res_meq_1000['datos'][:10]} ...",
-        f"  Ultimos 20  (1000 reg): {res_meq_1000['datos'][-10:]}",
-        "  Verificacion manual O(n): CORRECTO (100% Ordenado sin .sort() ni sorted())",
+        f"  Primeros 20 nodos (1000): {res20_1000['primeros_20'][:10]} ...",
+        f"  Ultimos 20 nodos  (1000): {res20_1000['ultimos_20'][10:20]}",
+        "  Verificacion manual O(n) sobre Node.next: CORRECTO (100% Ordenado en MyLinkedList)",
     ]
-    img_cap1 = renderizar_captura_consola(lineas_cap1, "capturas/01_carga_y_ordenamiento.png", "Ejecución en Vivo — Carga TXT/XLSX y Ordenamiento")
+    img_cap1 = renderizar_captura_consola(lineas_cap1, "capturas/01_carga_y_ordenamiento.png", "Ejecución en Vivo — MyLinkedList.py + Carga TXT/XLSX y Ordenamiento")
 
     # Captura 2: Búsquedas (Secuencial, Binaria, Hash), Benchmark y Exportación
     lineas_cap2 = [
