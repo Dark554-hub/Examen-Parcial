@@ -165,7 +165,7 @@ def menu_ordenar_datos(estado):
     estado["esta_ordenado"] = True
     estado["ascendente"] = ascendente
     estado["ultimo_ordenamiento"] = res
-    cap = 2003 if len(res["datos"]) <= 2000 else 10007
+    cap = 257 if len(res["datos"]) <= 2000 else 521
     estado["tabla_hash"] = TablaHashTransacciones(capacidad=cap).construir_desde_lista(res["datos"])
 
     print("\n  ======================================================================")
@@ -228,7 +228,7 @@ def menu_buscar_valor(estado):
         resultados.append(busqueda_binaria(estado["datos_actuales"], objetivo, ascendente=estado["ascendente"]))
     elif op_busq == "3":
         if estado["tabla_hash"] is None:
-            cap = 2003 if len(estado["datos_actuales"]) <= 2000 else 10007
+            cap = 257 if len(estado["datos_actuales"]) <= 2000 else 521
             estado["tabla_hash"] = TablaHashTransacciones(capacidad=cap).construir_desde_lista(estado["datos_actuales"])
         resultados.append(estado["tabla_hash"].buscar(objetivo))
     else:
@@ -242,7 +242,7 @@ def menu_buscar_valor(estado):
         print(f"  Estado               : {'ENCONTRADO' if r['encontrado'] else 'NO ENCONTRADO'}")
         if r["encontrado"]:
             print(f"  Primera posición     : Nodo índice {r['indice_primero']}")
-            print(f"  Total apariciones    : {r['total_apariciones']} -> Índices en MyLinkedList: {r['todas_posiciones'][:15]}")
+            print(f"  Total apariciones    : {r['total_apariciones']} -> Índices en MyLinkedList: {r['todas_posiciones']}")
         print(f"  Comparaciones        : {r['comparaciones']:,}")
         print(f"  Tiempo de búsqueda   : {r['tiempo_seg']:.8f} s ({r['tiempo_ms']:.5f} ms)")
         if "cubeta_hash" in r:
@@ -392,8 +392,8 @@ def main():
     info_inicial = cargar_archivo_datos(archivos_base["txt_1000"])
     estado = {
         "info_archivo": info_inicial,
-        "datos_originales": info_inicial["datos"].copy(),
-        "datos_actuales": info_inicial["datos"].copy(),
+        "datos_originales": MyLinkedList(info_inicial["datos"]),
+        "datos_actuales": MyLinkedList(info_inicial["datos"]),
         "esta_ordenado": False,
         "ascendente": True,
         "ultimo_ordenamiento": None,
@@ -429,8 +429,8 @@ def main():
         if opcion in ("A", "1"):
             nueva_info = menu_cargar_archivo(archivos_base)
             estado["info_archivo"] = nueva_info
-            estado["datos_originales"] = nueva_info["datos"].copy()
-            estado["datos_actuales"] = nueva_info["datos"].copy()
+            estado["datos_originales"] = MyLinkedList(nueva_info["datos"])
+            estado["datos_actuales"] = MyLinkedList(nueva_info["datos"])
             estado["esta_ordenado"] = False
             estado["ultimo_ordenamiento"] = None
             estado["tabla_hash"] = None

@@ -41,8 +41,8 @@ archivos_oficiales = generar_datasets_financieros("datos", semilla=42)
 if "info_archivo" not in st.session_state:
     info_init = cargar_archivo_datos(archivos_oficiales["txt_1000"])
     st.session_state["info_archivo"] = info_init
-    st.session_state["datos_originales"] = info_init["datos"].copy()
-    st.session_state["datos_actuales"] = info_init["datos"].copy()
+    st.session_state["datos_originales"] = info_init["datos"]
+    st.session_state["datos_actuales"] = info_init["datos"]
     st.session_state["esta_ordenado"] = False
     st.session_state["ascendente"] = True
     st.session_state["ultimo_ordenamiento"] = None
@@ -109,8 +109,8 @@ with tabs[0]:
         if st.button("📥 Cargar Archivo Seleccionado en MyLinkedList", type="primary"):
             nueva_info = cargar_archivo_datos(seleccion[1])
             st.session_state["info_archivo"] = nueva_info
-            st.session_state["datos_originales"] = nueva_info["datos"].copy()
-            st.session_state["datos_actuales"] = nueva_info["datos"].copy()
+            st.session_state["datos_originales"] = nueva_info["datos"]
+            st.session_state["datos_actuales"] = nueva_info["datos"]
             st.session_state["esta_ordenado"] = False
             st.session_state["ultimo_ordenamiento"] = None
             st.rerun()
@@ -125,8 +125,8 @@ with tabs[0]:
             nueva_info = cargar_archivo_datos(ruta_tmp)
             nueva_info["nombre_archivo"] = archivo_subido.name
             st.session_state["info_archivo"] = nueva_info
-            st.session_state["datos_originales"] = nueva_info["datos"].copy()
-            st.session_state["datos_actuales"] = nueva_info["datos"].copy()
+            st.session_state["datos_originales"] = nueva_info["datos"]
+            st.session_state["datos_actuales"] = nueva_info["datos"]
             st.session_state["esta_ordenado"] = False
             st.session_state["ultimo_ordenamiento"] = None
 
@@ -141,22 +141,22 @@ with tabs[0]:
 
     c_p20, c_u20 = st.columns(2)
     with c_p20:
-        st.markdown("**Primeros 20 elementos:**")
+        st.markdown("**Primeros 20 elementos (`MyLinkedList`):**")
         st.dataframe(
             pd.DataFrame({
                 "Índice": list(range(len(resumen["primeros_20"]))),
-                "Valor (Monto Entero)": resumen["primeros_20"],
+                "Valor (Monto Entero)": resumen["primeros_20"].to_list(),
             }),
             use_container_width=True,
             hide_index=True,
         )
     with c_u20:
-        st.markdown("**Últimos 20 elementos:**")
+        st.markdown("**Últimos 20 elementos (`MyLinkedList`):**")
         n_tot = resumen["total_registros"]
         st.dataframe(
             pd.DataFrame({
                 "Índice": list(range(max(0, n_tot - 20), n_tot)),
-                "Valor (Monto Entero)": resumen["ultimos_20"],
+                "Valor (Monto Entero)": resumen["ultimos_20"].to_list(),
             }),
             use_container_width=True,
             hide_index=True,
@@ -283,7 +283,7 @@ with tabs[2]:
                 "Encontrado": "SÍ" if r["encontrado"] else "NO",
                 "Primer Índice": r["indice_primero"],
                 "Total Apariciones": r["total_apariciones"],
-                "Posiciones": str(r["todas_posiciones"][:10]),
+                "Posiciones (MyLinkedList)": repr(r["todas_posiciones"]),
                 "Comparaciones": r["comparaciones"],
                 "Tiempo (ms)": f"{r['tiempo_ms']:.5f} ms",
             })

@@ -188,8 +188,8 @@ def obtener_resumen_resultados(lista_enlazada):
     return {
         "estructura": "MyLinkedList",
         "total_registros": n,
-        "primeros_20": primeros_20_ll.to_list(),
-        "ultimos_20": ultimos_20_ll.to_list(),
+        "primeros_20": primeros_20_ll,
+        "ultimos_20": ultimos_20_ll,
         "primeros_20_ll": primeros_20_ll,
         "ultimos_20_ll": ultimos_20_ll,
         "minimo": minimo,

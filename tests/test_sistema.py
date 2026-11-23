@@ -109,10 +109,10 @@ class TestSistemaOrdenamientoBusqueda(unittest.TestCase):
     def test_correccion_codigo_defectuoso(self):
         casos = ejecutar_todos_los_casos_defectuosos()
         self.assertEqual(len(casos), 5)
-        self.assertEqual(casos[0]["resultado_corregido"], [7, 12, 33, 45, 89])
-        self.assertEqual(casos[1]["resultado_corregido"], [10, 20, 30, 50, 50])
-        self.assertEqual(casos[2]["resultado_corregido"], [10, 25, 40, 60, 90])
-        self.assertEqual(casos[3]["resultado_corregido"], [9, 25, 300, 1000])
+        self.assertEqual(casos[0]["resultado_corregido"], MyLinkedList([7, 12, 33, 45, 89]))
+        self.assertEqual(casos[1]["resultado_corregido"], MyLinkedList([10, 20, 30, 50, 50]))
+        self.assertEqual(casos[2]["resultado_corregido"], MyLinkedList([10, 25, 40, 60, 90]))
+        self.assertEqual(casos[3]["resultado_corregido"], MyLinkedList([9, 25, 300, 1000]))
 
 
 if __name__ == "__main__":

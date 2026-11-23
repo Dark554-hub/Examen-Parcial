@@ -487,9 +487,13 @@ def main():
     busq_5000 = ejecutar_benchmark_busquedas(res_qs_5000["datos"], 99999, ascendente=True)
     casos_def = ejecutar_todos_los_casos_defectuosos()
 
-        # Captura 1: Carga de TXT (1,000) y XLSX (5,000) en MyLinkedList + Ordenamiento Interno/Externo + 20/20
+    # Captura 1: Carga de TXT (1,000) y XLSX (5,000) en MyLinkedList + Ordenamiento Interno/Externo + 20/20
     res20_5000 = obtener_resumen_resultados(res_qs_5000["datos"])
     res20_1000 = obtener_resumen_resultados(res_meq_1000["datos"])
+    p20_5000 = res20_5000["primeros_20"].to_list()
+    u20_5000 = res20_5000["ultimos_20"].to_list()
+    p20_1000 = res20_1000["primeros_20"].to_list()
+    u20_1000 = res20_1000["ultimos_20"].to_list()
     lineas_cap1 = [
         "PS C:\\Users\\Emili\\OneDrive\\Desktop\\Examen Parcial> python main.py",
         "======================================================================================",
@@ -500,15 +504,15 @@ def main():
         "--------------------------------------------------------------------------------------",
         f"[ORDENAMIENTO INTERNO SOBRE MYLINKEDLIST] Algoritmo: {res_qs_5000['algoritmo']} ({res_qs_5000['orden']})",
         f"  Tiempo ejecucion: {res_qs_5000['tiempo_seg']:.6f} s ({res_qs_5000['tiempo_ms']:.4f} ms) | Comparaciones: {res_qs_5000['comparaciones']:,}",
-        f"  Primeros 20 nodos (5000): {res20_5000['primeros_20'][:10]} ...",
-        f"                            {res20_5000['primeros_20'][10:20]}",
-        f"  Ultimos 20 nodos  (5000): {res20_5000['ultimos_20'][:10]} ...",
-        f"                            {res20_5000['ultimos_20'][10:20]}",
+        f"  Primeros 20 nodos (5000): {p20_5000[:10]} ...",
+        f"                            {p20_5000[10:20]}",
+        f"  Ultimos 20 nodos  (5000): {u20_5000[:10]} ...",
+        f"                            {u20_5000[10:20]}",
         "--------------------------------------------------------------------------------------",
         f"[ORDENAMIENTO EXTERNO SOBRE MYLINKEDLIST] Algoritmo: {res_meq_1000['algoritmo']}",
         f"  Tiempo ejecucion: {res_meq_1000['tiempo_ms']:.4f} ms | Corridas iniciales: {res_meq_1000['tramos_iniciales']} | Pasadas: {res_meq_1000['pasadas_externas']}",
-        f"  Primeros 20 nodos (1000): {res20_1000['primeros_20'][:10]} ...",
-        f"  Ultimos 20 nodos  (1000): {res20_1000['ultimos_20'][10:20]}",
+        f"  Primeros 20 nodos (1000): {p20_1000[:10]} ...",
+        f"  Ultimos 20 nodos  (1000): {u20_1000[10:20]}",
         "  Verificacion manual O(n) sobre Node.next: CORRECTO (100% Ordenado en MyLinkedList)",
     ]
     img_cap1 = renderizar_captura_consola(lineas_cap1, "capturas/01_carga_y_ordenamiento.png", "Ejecución en Vivo — MyLinkedList.py + Carga TXT/XLSX y Ordenamiento")

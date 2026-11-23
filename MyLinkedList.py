@@ -41,21 +41,6 @@ class MyLinkedList:
         return any(item == value for item in self)
 
     def __getitem__(self, index):
-        if isinstance(index, slice):
-            start, stop, step = index.indices(self._size)
-            resultado = MyLinkedList()
-            if step == 1:
-                cur = self.head
-                i = 0
-                while cur is not None and i < stop:
-                    if i >= start:
-                        resultado.append(cur.data)
-                    cur = cur.next
-                    i += 1
-            else:
-                for i in range(start, stop, step):
-                    resultado.append(self._node_at(i).data)
-            return resultado
         return self._node_at(self._normalize(index)).data
 
     def __setitem__(self, index, value):
@@ -65,18 +50,9 @@ class MyLinkedList:
         self.pop(index)
 
     def __eq__(self, other):
-        if isinstance(other, list):
-            if len(self) != len(other):
-                return False
-            return all(a == b for a, b in zip(self, other))
         if not isinstance(other, MyLinkedList) or len(self) != len(other):
             return False
         return all(a == b for a, b in zip(self, other))
-
-    def __add__(self, other):
-        nueva = MyLinkedList(self)
-        nueva.extend(other)
-        return nueva
 
     def __repr__(self):
         return "MyLinkedList([" + ", ".join(repr(x) for x in self) + "])"
@@ -187,9 +163,6 @@ class MyLinkedList:
         while cur is not None:
             cur.next, prev, cur = prev, cur, cur.next
         self.head = prev
-
-    def copy(self):
-        return MyLinkedList(self)
 
     def to_list(self):
         return list(self)

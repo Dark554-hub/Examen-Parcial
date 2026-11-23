@@ -191,7 +191,7 @@ def mezcla_directa(lista, ascendente=True, retornar_metricas=False, dir_auxiliar
     tam_bloque = 1
     pasada = 0
     metricas = {"comparaciones": 0, "movimientos": 0}
-    archivos_aux = []
+    archivos_aux = MyLinkedList()
 
     while tam_bloque < n:
         pasada += 1
@@ -199,7 +199,8 @@ def mezcla_directa(lista, ascendente=True, retornar_metricas=False, dir_auxiliar
 
         if dir_auxiliar and pasada in (1, 2):
             r1, r2 = _guardar_auxiliares_disco(f1, f2, dir_auxiliar, f"directa_pasada_{pasada}")
-            archivos_aux.extend([r1, r2])
+            archivos_aux.append(r1)
+            archivos_aux.append(r2)
 
         datos_ll = MyLinkedList()
         cur_f1 = f1.head
@@ -282,7 +283,7 @@ def mezcla_equilibrada(lista, ascendente=True, retornar_metricas=False, dir_auxi
     iteracion = 0
     metricas = {"comparaciones": 0, "movimientos": 0}
     tramos_iniciales = 0
-    archivos_aux = []
+    archivos_aux = MyLinkedList()
 
     while True:
         tramos = obtener_tramos_naturales(datos_ll, ascendente, metricas)
@@ -306,7 +307,8 @@ def mezcla_equilibrada(lista, ascendente=True, retornar_metricas=False, dir_auxi
 
         if dir_auxiliar and iteracion in (1, 2):
             r1, r2 = _guardar_auxiliares_disco(f1, f2, dir_auxiliar, f"equilibrada_iter_{iteracion}")
-            archivos_aux.extend([r1, r2])
+            archivos_aux.append(r1)
+            archivos_aux.append(r2)
 
         datos_ll = MyLinkedList()
         cur_f1 = f1.head

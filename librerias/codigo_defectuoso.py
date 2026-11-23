@@ -85,7 +85,7 @@ def probar_caso_1_indices(muestra=None):
         ),
         "entrada_prueba": repr(muestra),
         "resultado_defectuoso": error_capturado,
-        "resultado_corregido": datos_ok.to_list(),
+        "resultado_corregido": datos_ok,
         "resultado_linked_list": repr(datos_ok),
     }
 
@@ -134,9 +134,17 @@ def probar_caso_2_recursividad(muestra=None):
         if len(ll) == 0:
             return ll
         pivote = ll.head.data
-        menores = MyLinkedList([x for x in ll if x <= pivote])
-        mayores = MyLinkedList([x for x in ll if x > pivote])
-        return _qs_defectuoso_seguro(menores, prof + 1) + _qs_defectuoso_seguro(mayores, prof + 1)
+        menores = MyLinkedList()
+        mayores = MyLinkedList()
+        for x in ll:
+            if x <= pivote:
+                menores.append(x)
+            else:
+                mayores.append(x)
+        res = MyLinkedList()
+        res.extend(_qs_defectuoso_seguro(menores, prof + 1))
+        res.extend(_qs_defectuoso_seguro(mayores, prof + 1))
+        return res
 
     error_capturado = None
     try:
@@ -158,7 +166,11 @@ def probar_caso_2_recursividad(muestra=None):
                 mayores.append(x)
             else:
                 iguales.append(x)
-        return _qs_corregido(menores) + iguales + _qs_corregido(mayores)
+        res = MyLinkedList()
+        res.extend(_qs_corregido(menores))
+        res.extend(iguales)
+        res.extend(_qs_corregido(mayores))
+        return res
 
     res_ok = _qs_corregido(muestra)
     return {
@@ -179,7 +191,7 @@ def probar_caso_2_recursividad(muestra=None):
         ),
         "entrada_prueba": repr(muestra),
         "resultado_defectuoso": error_capturado,
-        "resultado_corregido": res_ok.to_list(),
+        "resultado_corregido": res_ok,
         "resultado_linked_list": repr(res_ok),
     }
 
@@ -272,8 +284,8 @@ def probar_caso_3_intercambio(muestra=None):
             "`nodo_i.data, nodo_min.data = nodo_min.data, nodo_i.data`), preservando la integridad de `MyLinkedList`."
         ),
         "entrada_prueba": repr(muestra),
-        "resultado_defectuoso": f"Datos corruptos en MyLinkedList: {datos_err.to_list()}",
-        "resultado_corregido": datos_ok.to_list(),
+        "resultado_defectuoso": f"Datos corruptos en MyLinkedList: {datos_err}",
+        "resultado_corregido": datos_ok,
         "resultado_linked_list": repr(datos_ok),
     }
 
@@ -353,8 +365,8 @@ def probar_caso_4_archivos():
             "líneas vacías y se insertó cada valor con `datos_ll.append(int(limpia))` en `MyLinkedList`."
         ),
         "entrada_prueba": "['1000', '25', '', '9', '300']",
-        "resultado_defectuoso": f"Orden lexicográfico incorrecto en MyLinkedList: {lex_ll.to_list()}",
-        "resultado_corregido": datos_ok.to_list(),
+        "resultado_defectuoso": f"Orden lexicográfico incorrecto en MyLinkedList: {lex_ll}",
+        "resultado_corregido": datos_ok,
         "resultado_linked_list": repr(datos_ok),
     }
 

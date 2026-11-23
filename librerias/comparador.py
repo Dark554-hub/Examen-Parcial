@@ -110,7 +110,7 @@ def ejecutar_benchmark_ordenamientos(lista_datos, ascendente=True, incluir_cuadr
 
 def ejecutar_benchmark_busquedas(lista_ordenada, objetivo, ascendente=True):
     """Compara empíricamente Búsqueda Secuencial, Búsqueda Binaria y Búsqueda Hash."""
-    cap = 2003 if len(lista_ordenada) <= 2000 else 10007
+    cap = 257 if len(lista_ordenada) <= 2000 else 521
     tabla = TablaHashTransacciones(capacidad=cap).construir_desde_lista(lista_ordenada)
 
     res_sec = busqueda_secuencial(lista_ordenada, objetivo)
